@@ -4,8 +4,8 @@ SCRIPT_VERSION="3.0.7"
 UPDATE_AVAILABLE=false
 DIR_REMNAWAVE="/usr/local/remnawave_reverse/"
 LANG_FILE="${DIR_REMNAWAVE}selected_language"
-SCRIPT_URL="https://raw.githubusercontent.com/eGamesAPI/remnawave-reverse-proxy/refs/heads/main/install_remnawave.sh"
-LANG_BASE_URL="https://raw.githubusercontent.com/eGamesAPI/remnawave-reverse-proxy/refs/heads/main/src/lang"
+SCRIPT_URL="https://raw.githubusercontent.com/HoreXi/-remnawave-reverse-proxy/main/install_remnawave.sh"
+LANG_BASE_URL="https://raw.githubusercontent.com/HoreXi/-remnawave-reverse-proxy/main/src/lang"
 
 COLOR_RESET="\033[0m"
 COLOR_GREEN="\033[1;32m"
@@ -23,8 +23,8 @@ download_with_mirrors() {
     # Mirror URLs (GitHub raw content proxies)
     local mirrors=(
         "$file_url"
-        "https://cdn.jsdelivr.net/gh/eGamesAPI/remnawave-reverse-proxy@main/${file_url#*main/}"
-        "https://raw.githack.com/eGamesAPI/remnawave-reverse-proxy/main/${file_url#*main/}"
+        "https://cdn.jsdelivr.net/gh/HoreXi/-remnawave-reverse-proxy@main/${file_url#*main/}"
+        "https://raw.githack.com/HoreXi/-remnawave-reverse-proxy/main/${file_url#*main/}"
         "https://ghproxy.com/${file_url}"
     )
     
@@ -2324,7 +2324,7 @@ load_module() {
     local module_name="$1"
     local module_type="${2:-modules}"
     local module_file="${DIR_REMNAWAVE}${module_type}/${module_name}.sh"
-    local module_url="https://raw.githubusercontent.com/eGamesAPI/remnawave-reverse-proxy/refs/heads/main/src/${module_type}/${module_name}.sh"
+    local module_url="https://raw.githubusercontent.com/HoreXi/-remnawave-reverse-proxy/main/src/${module_type}/${module_name}.sh"
     local force_update="${3:-false}"
     local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 
