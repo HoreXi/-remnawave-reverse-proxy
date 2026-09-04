@@ -279,7 +279,7 @@ services:
         condition: service_healthy
 
   remnanode:
-    image: remnawave/node:latest
+    image: remnawave/node:2.8.0
     container_name: remnanode
     hostname: remnanode
     <<: [*common, *logging]
@@ -292,6 +292,8 @@ services:
       - SECRET_KEY="PUBLIC KEY FROM REMNAWAVE-PANEL"
     volumes:
       - /dev/shm:/dev/shm:rw
+      - ./assets/geosite.dat:/usr/local/share/xray/geosite.dat:ro
+      - ./assets/geosite.dat:/usr/share/xray/geosite.dat:ro
 
 networks:
   remnawave-network:
@@ -420,6 +422,12 @@ EOL
 installation_panel_node_caddy() {
     install_panel_node_caddy
 	
+    mkdir -p /opt/remnawave/assets
+    if [ ! -s /opt/remnawave/assets/geosite.dat ]; then
+        curl -sL -o /opt/remnawave/assets/geosite.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat || true
+    fi
+    (crontab -l 2>/dev/null | grep -v "geosite.dat"; echo "0 4 * * 1 curl -sL -o /opt/remnawave/assets/geosite.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat && docker restart remnanode >/dev/null 2>&1") | crontab -
+
     echo -e "${COLOR_YELLOW}${LANG[STARTING_PANEL_NODE]}${COLOR_RESET}"
     sleep 1
     cd /opt/remnawave

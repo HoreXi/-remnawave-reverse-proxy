@@ -88,7 +88,7 @@ services:
           start_period: 5s
 
     remnanode:
-      image: remnawave/node:latest
+      image: remnawave/node:2.8.0
       container_name: remnanode
       hostname: remnanode
       <<: [*common, *logging]
@@ -100,6 +100,8 @@ services:
         - SECRET_KEY=$(echo -e "$CERTIFICATE")
       volumes:
         - /dev/shm:/dev/shm:rw
+        - ./assets/geosite.dat:/usr/local/share/xray/geosite.dat:ro
+        - ./assets/geosite.dat:/usr/share/xray/geosite.dat:ro
 
 volumes:
   caddy_data:
@@ -147,6 +149,11 @@ installation_node_caddy() {
     ufw allow from $PANEL_IP to any port 2222 > /dev/null 2>&1
     ufw reload > /dev/null 2>&1
 
+    mkdir -p /opt/remnanode/assets
+    if [ ! -s /opt/remnanode/assets/geosite.dat ]; then
+        curl -sL -o /opt/remnanode/assets/geosite.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat || true
+    fi
+
     echo -e "${COLOR_YELLOW}${LANG[STARTING_NODE]}${COLOR_RESET}"
     sleep 3
     cd /opt/remnanode
@@ -177,4 +184,15 @@ installation_node_caddy() {
         fi
         ((attempt++))
     done
+
+    # Node Hardening Suite prompt
+    echo -e ""
+    echo -e "${COLOR_GREEN}====================================================${COLOR_RESET}"
+    echo -e "${COLOR_GREEN}         ТЮНИНГ И ЗАЩИТА СЕРВЕРА НОДЫ              ${COLOR_RESET}"
+    echo -e "${COLOR_GREEN}====================================================${COLOR_RESET}"
+    reading "Применить полный комплекс тюнинга и защиты сервера ноды (Geosite, UFW, SSH 22222, BBR, Fail2ban, Chrony)? (y/n) [по умолчанию: y]: " apply_harden
+    if [[ -z "$apply_harden" || "$apply_harden" == "y" || "$apply_harden" == "Y" ]]; then
+        load_node_hardening_module
+        apply_all_node_hardening "$PANEL_IP"
+    fi
 }

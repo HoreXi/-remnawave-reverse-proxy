@@ -443,9 +443,15 @@ remove_script() {
 }
 
 install_script_if_missing() {
-    if [ ! -f "${DIR_REMNAWAVE}remnawave_reverse" ] || [ ! -f "/usr/local/bin/remnawave_reverse" ]; then
-        mkdir -p "${DIR_REMNAWAVE}"
-        
+    mkdir -p "${DIR_REMNAWAVE}"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+
+    if [ -d "$script_dir/src" ] && [ -f "$script_dir/install_remnawave.sh" ]; then
+        cp -f "$script_dir/install_remnawave.sh" "${DIR_REMNAWAVE}remnawave_reverse"
+        chmod +x "${DIR_REMNAWAVE}remnawave_reverse"
+        ln -sf "${DIR_REMNAWAVE}remnawave_reverse" /usr/local/bin/remnawave_reverse
+        cp -rf "$script_dir/src/"* "${DIR_REMNAWAVE}" 2>/dev/null || true
+    elif [ ! -f "${DIR_REMNAWAVE}remnawave_reverse" ] || [ ! -f "/usr/local/bin/remnawave_reverse" ]; then
         # Use download_with_mirrors for reliable download
         if ! download_with_mirrors "$SCRIPT_URL" "${DIR_REMNAWAVE}remnawave_reverse" "script"; then
             # Fallback: try direct download
@@ -581,6 +587,8 @@ show_menu() {
     echo -e ""
     echo -e "${COLOR_YELLOW}10. ${LANG[MENU_10]}${COLOR_RESET}" # Check for updates
     echo -e "${COLOR_YELLOW}11. ${LANG[MENU_11]}${COLOR_RESET}" # Remove script
+    echo -e ""
+    echo -e "${COLOR_YELLOW}12. ${LANG[MENU_12]}${COLOR_RESET}" # Node Security & Hardening Suite
     echo -e ""
     echo -e "${COLOR_YELLOW}0. ${LANG[EXIT]}${COLOR_RESET}"
     echo -e "${COLOR_YELLOW}- ${LANG[FAST_START]//remnawave_reverse/${COLOR_GREEN}remnawave_reverse${COLOR_RESET}}"
@@ -2318,8 +2326,12 @@ load_module() {
     local module_file="${DIR_REMNAWAVE}${module_type}/${module_name}.sh"
     local module_url="https://raw.githubusercontent.com/eGamesAPI/remnawave-reverse-proxy/refs/heads/main/src/${module_type}/${module_name}.sh"
     local force_update="${3:-false}"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 
-    if [ "$force_update" = "true" ] || [ ! -f "$module_file" ]; then
+    if [ -f "$script_dir/src/${module_type}/${module_name}.sh" ]; then
+        mkdir -p "${DIR_REMNAWAVE}${module_type}"
+        cp -f "$script_dir/src/${module_type}/${module_name}.sh" "$module_file"
+    elif [ "$force_update" = "true" ] || [ ! -f "$module_file" ]; then
         mkdir -p "${DIR_REMNAWAVE}${module_type}"
 
         local backup_file="${module_file}.bak"
@@ -2381,6 +2393,7 @@ load_caddy_node_module() { load_module "install_node" "caddy" "${1:-false}"; }
 load_warp_module() { load_module "warp" "modules" "${1:-false}"; }
 load_ipv6_module() { load_module "ipv6" "modules" "${1:-false}"; }
 load_selfsteal_templates_module() { load_module "selfsteal_templates" "modules" "${1:-false}"; }
+load_node_hardening_module() { load_module "node_hardening" "modules" "${1:-false}"; }
 
 log_entry
 
@@ -2397,6 +2410,17 @@ fi
 
 check_root
 check_os
+
+if [[ "$1" == "--harden" || "$1" == "--hardening" ]]; then
+    load_node_hardening_module
+    manage_node_hardening
+    exit 0
+elif [[ "$1" == "--auto-harden" ]]; then
+    load_node_hardening_module
+    apply_all_node_hardening "$2"
+    exit 0
+fi
+
 install_script_if_missing
 check_update_status
 show_menu
@@ -2496,6 +2520,13 @@ case $OPTION in
         ;;
     11)
         remove_script
+        ;;
+    12)
+        load_node_hardening_module
+        manage_node_hardening
+        sleep 2
+        log_clear
+        remnawave_reverse
         ;;
     0)
         echo -e "${COLOR_YELLOW}${LANG[EXIT]}${COLOR_RESET}"
