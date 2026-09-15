@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_VERSION="3.0.7"
+SCRIPT_VERSION="3.0.8"
 UPDATE_AVAILABLE=false
 DIR_REMNAWAVE="/usr/local/remnawave_reverse/"
 LANG_FILE="${DIR_REMNAWAVE}selected_language"
@@ -275,7 +275,7 @@ update_remnawave_reverse() {
     done
 
     # Modules (common)
-    local common_modules=("add_node" "manage_panel" "warp" "ipv6" "selfsteal_templates")
+    local common_modules=("add_node" "manage_panel" "warp" "ipv6" "selfsteal_templates" "node_hardening")
     for module in "${common_modules[@]}"; do
         local module_file="${DIR_REMNAWAVE}modules/${module}.sh"
         if [ -f "$module_file" ]; then
@@ -2417,7 +2417,7 @@ if [[ "$1" == "--harden" || "$1" == "--hardening" ]]; then
     exit 0
 elif [[ "$1" == "--auto-harden" ]]; then
     load_node_hardening_module
-    apply_all_node_hardening "$2"
+    apply_all_node_hardening "$2" "$3"
     exit 0
 fi
 
